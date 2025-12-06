@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro General</title>
+    <style>
+        /* Agregamos position: relative para que el aviso se ubique respecto al cuerpo */
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background-color: #f4f4f9; 
+            position: relative; 
+        }
+        
+        /* --- ESTILO DEL AVISO FLOTANTE --- */
+        .aviso-borrar {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #fff;
+            padding: 10px 15px;
+            border-radius: 25px;
+            font-size: 13px;
+            color: #666;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border: 1px solid #ddd;
+            z-index: 100; /* Para asegurar que quede encima de todo */
+        }
+
+        .aviso-borrar strong {
+            color: #d9534f; /* Color rojizo para resaltar el correo */
+        }
+        
+        /* Formulario */
+        .input-group {
+            background-color: #fff; padding: 20px; border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; gap: 10px;
+            flex-wrap: wrap; align-items: flex-end; margin-bottom: 20px;
+            border-top: 4px solid #4CAF50;
+            margin-top: 40px; /* Un poco más de espacio arriba para no chocar con el aviso en móviles */
+        }
+        .input-wrapper { display: flex; flex-direction: column; flex: 1; min-width: 150px; }
+        .input-wrapper label { font-size: 12px; font-weight: bold; margin-bottom: 5px; color: #555; }
+        .input-entry { padding: 10px; border: 1px solid #ccc; border-radius: 4px; width: 100%; box-sizing: border-box; }
+        
+        button { padding: 10px 20px; cursor: pointer; border: none; border-radius: 4px; font-weight: bold; color: white; }
+        .btn-add { background-color: #4CAF50; height: 38px; min-width: 120px; }
+        .btn-add:hover { background-color: #45a049; }
+        .btn-add:disabled { background-color: #ccc; cursor: not-allowed; }
+/* Estilo para el botón de recargar (Azul) */
+        .btn-reload { 
+            background-color: #2196F3; 
+            margin-top: 5px; 
+            margin-bottom: 15px; 
+            width: 100%; 
+        }
+        .btn-reload:hover { background-color: #0b7dda; }
+        /* Tabla y Buscador */
+        .search-box { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;}
+        .excel-table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+        .excel-table th, .excel-table td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        .excel-table th { background-color: #2196F3; color: white; cursor: pointer;}
+        .excel-table tr:nth-child(even) { background-color: #f9f9f9; }
+        
+        /* Loader */
+        #loading { color: #2196F3; font-weight: bold; display: none; margin-bottom: 10px; text-align: center;}
+    </style>
+</head>
+<body>
+
+    <div class="aviso-borrar">
+        Para borrar un nombre, escribe a: <strong>elgantel762@gmail.com</strong>
+    </div>
+
+    <h2>Registro General de Mujeres Infieles</h2>
+
+    <div class="input-group">
+        <div class="input-wrapper"><label>Fecha</label><input type="date" id="newDate" class="input-entry"></div>
+        <div class="input-wrapper"><label>Nombre Completo</label><input type="text" id="newName" class="input-entry" placeholder="Ej: Ana Pérez"></div>
+        <div class="input-wrapper"><label>País</label><input type="text" id="newCountry" class="input-entry" placeholder="País"></div>
+        <div class="input-wrapper"><label>Ciudad</label><input type="text" id="newCity" class="input-entry" placeholder="Ciudad"></div>
+        <button id="btnSubmit" class="btn-add" onclick="guardarEnGoogle()">AÑADIR</button>
+    </div>
+
+    <input type="text" id="buscador" class="search-box" onkeyup="buscarNombre()" placeholder="🔍 Buscar nombre en la base de datos...">
+<button class="btn-reload" onclick="cargarDatos()">↻ ACTUALIZAR TABLA</button>
+    <div id="loading">⏳ Cargando...</div>
+
+    <table class="excel-table" id="tablaDatos">
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th onclick="ordenarTabla()">Nombre Completo ⬍</th>
+                <th>País</th>
+                <th>Ciudad</th>
+            </tr>
+        </thead>
+        <tbody>
+            </tbody>
+    </table>
+
+    <script>
+        // ==========================================
+        //  ⚠️ PEGA TU URL DE APPS SCRIPT AQUÍ ABAJO
+        // ==========================================
+        
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw9vwRQWBmKU2lNtFlNmfm_T2QV7SiDmjR6jf-tN98-84NEedKAr95zISX9R3LULEOU/exec"; 
+
+
+        // 1. CARGAR DATOS AL INICIAR
+        window.onload = function() {
+            cargarDatos();
+        };
+
+        function cargarDatos() {
+            document.getElementById('loading').style.display = 'block';
+            
+            fetch(SCRIPT_URL)
+            .then(response => response.json())
+            .then(data => {
+                const tbody = document.getElementById("tablaDatos").getElementsByTagName('tbody')[0];
+                tbody.innerHTML = ""; // Limpiar tabla antes de llenar
+                
+                // data trae un array de arrays: [[fecha, nombre, pais, ciudad], ...]
+                data.forEach(fila => {
+                    let row = tbody.insertRow();
+                    let celdaFecha = row.insertCell(0); celdaFecha.innerText = formateaFecha(fila[0]);
+                    let celdaNombre = row.insertCell(1); celdaNombre.innerText = fila[1];
+                    let celdaPais = row.insertCell(2); celdaPais.innerText = fila[2];
+                    let celdaCiudad = row.insertCell(3); celdaCiudad.innerText = fila[3];
+                });
+                ordenarTabla(); // Ordenar al cargar
+                document.getElementById('loading').style.display = 'none';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('loading').innerText = "Error cargando datos.";
+            });
+        }
+
+        // 2. GUARDAR DATOS (ENVIAR A GOOGLE)
+        function guardarEnGoogle() {
+            let date = document.getElementById("newDate").value;
+            let name = document.getElementById("newName").value;
+            let country = document.getElementById("newCountry").value;
+            let city = document.getElementById("newCity").value;
+
+            // ==========================================
+            // ⚠️ AQUÍ ESTÁ EL CAMBIO: VALIDACIÓN TOTAL
+            // ==========================================
+            if(date === "" || name.trim() === "" || country.trim() === "" || city.trim() === "") {
+                alert("⚠️ Por favor, completa TODOS los campos (Fecha, Nombre, País y Ciudad).");
+                return; // Detiene la función si falta algo
+            }
+
+            // Bloquear botón para evitar doble clic
+            let btn = document.getElementById("btnSubmit");
+            btn.disabled = true;
+            btn.innerText = "Guardando...";
+            document.getElementById('loading').style.display = 'block';
+
+            // Enviar datos usando POST
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors', 
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ date: date, name: name, country: country, city: city })
+            })
+            .then(response => {
+                console.log("Datos enviados");
+                
+                // Limpiar campos
+                document.getElementById("newDate").value = "";
+                document.getElementById("newName").value = "";
+                document.getElementById("newCountry").value = "";
+                document.getElementById("newCity").value = "";
+                
+                setTimeout(cargarDatos, 1000); 
+                
+                btn.disabled = false;
+                btn.innerText = "AÑADIR";
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("Hubo un error al guardar.");
+                btn.disabled = false;
+            });
+        }
+
+        // --- FUNCIONES EXTRA ---
+
+        function buscarNombre() {
+            let input = document.getElementById("buscador").value.toUpperCase();
+            let table = document.getElementById("tablaDatos");
+            let tr = table.getElementsByTagName("tr");
+
+            for (let i = 1; i < tr.length; i++) {
+                let td = tr[i].getElementsByTagName("td")[1]; // Columna Nombre
+                if (td) {
+                    let txtValue = td.textContent || td.innerText;
+                    if (txtValue.toUpperCase().indexOf(input) > -1) {
+                        tr[i].style.display = "";
+                    } else {
+                        tr[i].style.display = "none";
+                    }
+                }
+            }
+        }
+
+        function ordenarTabla() {
+            let table = document.getElementById("tablaDatos");
+            let tbody = table.getElementsByTagName('tbody')[0];
+            let rows = Array.from(tbody.rows);
+
+            rows.sort((rowA, rowB) => {
+                let nombreA = rowA.cells[1].innerText.toLowerCase();
+                let nombreB = rowB.cells[1].innerText.toLowerCase();
+                return nombreA.localeCompare(nombreB);
+            });
+
+            rows.forEach(row => tbody.appendChild(row));
+        }
+
+        function formateaFecha(fechaGoogle) {
+            if (!fechaGoogle) return "";
+            // Google devuelve la fecha en formato ISO largo, intentamos cortarlo
+            let fecha = new Date(fechaGoogle);
+            if (isNaN(fecha.getTime())) return fechaGoogle; // Si es texto, devolver texto
+            return fecha.toISOString().split('T')[0]; // Devolver YYYY-MM-DD
+        }
+    </script>
+
+</body>
+</html>
