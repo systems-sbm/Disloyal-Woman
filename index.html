@@ -5,7 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro General</title>
     <style>
-        /* Agregamos position: relative para que el aviso se ubique respecto al cuerpo */
+/* Estilo para el botón de Correo dentro del aviso */
+        .btn-email {
+            display: inline-block;
+            background-color: #d9534f; /* Rojo/Naranja de advertencia */
+            color: white !important; 
+            text-decoration: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-left: 8px;
+            transition: background-color 0.3s;
+        }
+        .btn-email:hover {
+            background-color: #c9302c;
+        }
         body { 
             font-family: Arial, sans-serif; 
             padding: 20px; 
@@ -13,7 +27,7 @@
             position: relative; 
         }
         
-        /* --- ESTILO DEL AVISO FLOTANTE --- */
+        /* --- AVISO FLOTANTE --- */
         .aviso-borrar {
             position: absolute;
             top: 20px;
@@ -25,12 +39,9 @@
             color: #666;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             border: 1px solid #ddd;
-            z-index: 100; /* Para asegurar que quede encima de todo */
+            z-index: 100;
         }
-
-        .aviso-borrar strong {
-            color: #d9534f; /* Color rojizo para resaltar el correo */
-        }
+        .aviso-borrar strong { color: #d9534f; }
         
         /* Formulario */
         .input-group {
@@ -38,7 +49,7 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; gap: 10px;
             flex-wrap: wrap; align-items: flex-end; margin-bottom: 20px;
             border-top: 4px solid #4CAF50;
-            margin-top: 40px; /* Un poco más de espacio arriba para no chocar con el aviso en móviles */
+            margin-top: 50px; 
         }
         .input-wrapper { display: flex; flex-direction: column; flex: 1; min-width: 150px; }
         .input-wrapper label { font-size: 12px; font-weight: bold; margin-bottom: 5px; color: #555; }
@@ -48,43 +59,80 @@
         .btn-add { background-color: #4CAF50; height: 38px; min-width: 120px; }
         .btn-add:hover { background-color: #45a049; }
         .btn-add:disabled { background-color: #ccc; cursor: not-allowed; }
-/* Estilo para el botón de recargar (Azul) */
-        .btn-reload { 
-            background-color: #2196F3; 
-            margin-top: 5px; 
-            margin-bottom: 15px; 
-            width: 100%; 
-        }
+
+        .btn-reload { background-color: #2196F3; margin-top: 5px; margin-bottom: 15px; width: 100%; }
         .btn-reload:hover { background-color: #0b7dda; }
+
         /* Tabla y Buscador */
         .search-box { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;}
-        .excel-table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+        .excel-table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.2); font-size: 14px; }
         .excel-table th, .excel-table td { border: 1px solid #ddd; padding: 10px; text-align: left; }
         .excel-table th { background-color: #2196F3; color: white; cursor: pointer;}
         .excel-table tr:nth-child(even) { background-color: #f9f9f9; }
         
         /* Loader */
         #loading { color: #2196F3; font-weight: bold; display: none; margin-bottom: 10px; text-align: center;}
+/* --- ESTILOS PARA LA DESCRIPCIÓN DESPLEGABLE --- */
+        .desc-container {
+            display: flex;
+            align-items: flex-start;
+            gap: 5px;
+            max-width: 150px; /* Ancho máximo antes de cortar */
+        }
+
+        .desc-texto {
+            white-space: nowrap;       /* Todo en una línea */
+            overflow: hidden;          /* Ocultar lo que sobra */
+            text-overflow: ellipsis;   /* Poner "..." al final */
+            display: block;
+            width: 100%;
+            font-size: 13px;
+        }
+
+        /* Clase que se activa al abrir */
+        .desc-texto.abierto {
+            white-space: normal;       /* Permitir varias líneas */
+            overflow: visible;
+        }
+
+        .btn-toggle {
+            cursor: pointer;
+            color: #2196F3;
+            font-size: 12px;
+            background: none;
+            border: none;
+            padding: 0;
+            line-height: 1.5;
+        }
     </style>
 </head>
 <body>
 
     <div class="aviso-borrar">
-        Para borrar un nombre, escribe a: <strong>elgantel762@gmail.com</strong>
+        Para borrar un registro: 
+        <a href="mailto:elgantel762@gmail.com?subject=Solicitud%20de%20Borrado&body=Hola,%20solicito%20borrar%20el%20siguiente%20nombre:">
+            📩 ENVIAR CORREO
+        </a>
     </div>
 
     <h2>Registro General de Mujeres Infieles</h2>
 
     <div class="input-group">
-        <div class="input-wrapper"><label>Fecha de Nacimiento</label><input type="date" id="newDate" class="input-entry"></div>
-        <div class="input-wrapper"><label>Nombre Completo</label><input type="text" id="newName" class="input-entry" placeholder="Ej: Ana Patricia Gómez Herrera"></div>
+        <div class="input-wrapper"><label>Fecha</label><input type="date" id="newDate" class="input-entry"></div>
+        <div class="input-wrapper"><label>Nombre Completo</label><input type="text" id="newName" class="input-entry" placeholder="Ej: Ana Pérez"></div>
         <div class="input-wrapper"><label>País</label><input type="text" id="newCountry" class="input-entry" placeholder="País"></div>
         <div class="input-wrapper"><label>Ciudad</label><input type="text" id="newCity" class="input-entry" placeholder="Ciudad"></div>
+        
+        <div class="input-wrapper"><label>Relaciones</label><input type="text" id="newRelationship" class="input-entry" placeholder="Relación con la persona"></div>
+        <div class="input-wrapper"><label>Descripción</label><input type="text" id="newDescription" class="input-entry" placeholder="Detalles de lo que hizo"></div>
+
         <button id="btnSubmit" class="btn-add" onclick="guardarEnGoogle()">AÑADIR</button>
     </div>
 
     <input type="text" id="buscador" class="search-box" onkeyup="buscarNombre()" placeholder="🔍 Buscar nombre en la base de datos...">
-<button class="btn-reload" onclick="cargarDatos()">↻ ACTUALIZAR TABLA</button>
+    
+    <button class="btn-reload" onclick="cargarDatos()">↻ ACTUALIZAR TABLA</button>
+
     <div id="loading">⏳ Cargando...</div>
 
     <table class="excel-table" id="tablaDatos">
@@ -94,21 +142,21 @@
                 <th onclick="ordenarTabla()">Nombre Completo ⬍</th>
                 <th>País</th>
                 <th>Ciudad</th>
+                <th>Relaciones</th>
+                <th>Descripción</th>
             </tr>
         </thead>
         <tbody>
-            </tbody>
+        </tbody>
     </table>
 
     <script>
         // ==========================================
         //  ⚠️ PEGA TU URL DE APPS SCRIPT AQUÍ ABAJO
         // ==========================================
-        
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw9vwRQWBmKU2lNtFlNmfm_T2QV7SiDmjR6jf-tN98-84NEedKAr95zISX9R3LULEOU/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzwNFygt5vPi9QhPJ3-fdidkbtToWXDDFIjNiKopkFv2DapMCkykv4XSmKiGtP0dlRp/exec"; 
 
 
-        // 1. CARGAR DATOS AL INICIAR
         window.onload = function() {
             cargarDatos();
         };
@@ -120,17 +168,37 @@
             .then(response => response.json())
             .then(data => {
                 const tbody = document.getElementById("tablaDatos").getElementsByTagName('tbody')[0];
-                tbody.innerHTML = ""; // Limpiar tabla antes de llenar
+                tbody.innerHTML = ""; 
                 
-                // data trae un array de arrays: [[fecha, nombre, pais, ciudad], ...]
                 data.forEach(fila => {
                     let row = tbody.insertRow();
-                    let celdaFecha = row.insertCell(0); celdaFecha.innerText = formateaFecha(fila[0]);
-                    let celdaNombre = row.insertCell(1); celdaNombre.innerText = fila[1];
-                    let celdaPais = row.insertCell(2); celdaPais.innerText = fila[2];
-                    let celdaCiudad = row.insertCell(3); celdaCiudad.innerText = fila[3];
+                    
+                    // Celdas normales
+                    row.insertCell(0).innerText = formateaFecha(fila[0]);
+                    row.insertCell(1).innerText = fila[1];
+                    row.insertCell(2).innerText = fila[2];
+                    row.insertCell(3).innerText = fila[3];
+                    row.insertCell(4).innerText = fila[4];
+
+                    // --- CELDA DESCRIPCIÓN CON FLECHITA ---
+                    let celdaDesc = row.insertCell(5);
+                    let textoDesc = fila[5] || ""; // Si está vacío, pon cadena vacía
+                    
+                    if (textoDesc.length > 20) {
+                        // Si es largo, ponemos la estructura desplegable
+                        celdaDesc.innerHTML = `
+                            <div class="desc-container">
+                                <span class="desc-texto">${textoDesc}</span>
+                                <button class="btn-toggle" onclick="toggleDesc(this)">▼</button>
+                            </div>
+                        `;
+                    } else {
+                        // Si es corto, lo mostramos normal sin flecha
+                        celdaDesc.innerText = textoDesc;
+                    }
                 });
-                ordenarTabla(); // Ordenar al cargar
+                
+                ordenarTabla(); 
                 document.getElementById('loading').style.display = 'none';
             })
             .catch(error => {
@@ -139,35 +207,56 @@
             });
         }
 
+        // --- FUNCIÓN NUEVA PARA ABRIR/CERRAR (Pégala debajo de cargarDatos) ---
+        function toggleDesc(boton) {
+            // Buscamos el texto que está al lado del botón
+            let texto = boton.previousElementSibling;
+            
+            // Alternamos la clase 'abierto'
+            if (texto.classList.contains('abierto')) {
+                texto.classList.remove('abierto');
+                boton.innerText = "▼"; // Cambiar flecha abajo
+            } else {
+                texto.classList.add('abierto');
+                boton.innerText = "▲"; // Cambiar flecha arriba
+            }
+        }
+
         // 2. GUARDAR DATOS (ENVIAR A GOOGLE)
         function guardarEnGoogle() {
             let date = document.getElementById("newDate").value;
             let name = document.getElementById("newName").value;
             let country = document.getElementById("newCountry").value;
             let city = document.getElementById("newCity").value;
+            let relationship = document.getElementById("newRelationship").value;
+            let description = document.getElementById("newDescription").value; 
 
             // ==========================================
-            // ⚠️ AQUÍ ESTÁ EL CAMBIO: VALIDACIÓN TOTAL
+            // ⚠️ CAMBIO: La descripción ya NO está aquí
             // ==========================================
-            if(date === "" || name.trim() === "" || country.trim() === "" || city.trim() === "") {
-                alert("⚠️ Por favor, completa TODOS los campos (Fecha, Nombre, País y Ciudad).");
-                return; // Detiene la función si falta algo
+            if(date === "" || name.trim() === "" || country.trim() === "" || city.trim() === "" || relationship.trim() === "") {
+                alert("⚠️ Por favor, completa los campos obligatorios (Fecha, Nombre, País, Ciudad y Relación). La descripción es opcional.");
+                return;
             }
 
-            // Bloquear botón para evitar doble clic
             let btn = document.getElementById("btnSubmit");
             btn.disabled = true;
             btn.innerText = "Guardando...";
             document.getElementById('loading').style.display = 'block';
 
-            // Enviar datos usando POST
+            // Enviar datos
             fetch(SCRIPT_URL, {
                 method: 'POST',
                 mode: 'no-cors', 
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ date: date, name: name, country: country, city: city })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    date: date, 
+                    name: name, 
+                    country: country, 
+                    city: city,
+                    relationship: relationship,
+                    description: description // Se envía aunque esté vacío
+                })
             })
             .then(response => {
                 console.log("Datos enviados");
@@ -177,6 +266,8 @@
                 document.getElementById("newName").value = "";
                 document.getElementById("newCountry").value = "";
                 document.getElementById("newCity").value = "";
+                document.getElementById("newRelationship").value = "";
+                document.getElementById("newDescription").value = "";
                 
                 setTimeout(cargarDatos, 1000); 
                 
@@ -190,15 +281,13 @@
             });
         }
 
-        // --- FUNCIONES EXTRA ---
-
         function buscarNombre() {
             let input = document.getElementById("buscador").value.toUpperCase();
             let table = document.getElementById("tablaDatos");
             let tr = table.getElementsByTagName("tr");
 
             for (let i = 1; i < tr.length; i++) {
-                let td = tr[i].getElementsByTagName("td")[1]; // Columna Nombre
+                let td = tr[i].getElementsByTagName("td")[1]; 
                 if (td) {
                     let txtValue = td.textContent || td.innerText;
                     if (txtValue.toUpperCase().indexOf(input) > -1) {
@@ -226,15 +315,11 @@
 
         function formateaFecha(fechaGoogle) {
             if (!fechaGoogle) return "";
-            // Google devuelve la fecha en formato ISO largo, intentamos cortarlo
             let fecha = new Date(fechaGoogle);
-            if (isNaN(fecha.getTime())) return fechaGoogle; // Si es texto, devolver texto
-            return fecha.toISOString().split('T')[0]; // Devolver YYYY-MM-DD
+            if (isNaN(fecha.getTime())) return fechaGoogle; 
+            return fecha.toISOString().split('T')[0]; 
         }
     </script>
 
 </body>
-
 </html>
-
-
